@@ -362,32 +362,4 @@ BEGIN
     DECLARE @END_TIME DATETIME = GETDATE();
     PRINT 'LOADING GOLD LAYER COMPLETED IN ' + CAST(DATEDIFF(MILLISECOND, @START_TIME, @END_TIME) AS NVARCHAR(20)) + ' millisecond';
 END;
-GO
-
-CREATE OR ALTER PROCEDURE gold.sp_get_executive_kpis
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    PRINT '================================================================';
-    PRINT ' CALCULATING EXECUTIVE KPIS';
-    PRINT '================================================================';
-
-    SELECT 
-        COUNT(DISTINCT f.Order_ID) AS Total_Orders,
-        SUM(f.Sales) AS Total_Revenue,
-        SUM(f.Profit) AS Total_Profit,
-        SUM(f.Quantity) AS Total_Items_Sold,
-        CASE 
-            WHEN SUM(f.Sales) = 0 THEN 0 
-            ELSE CAST((SUM(f.Profit) / SUM(f.Sales)) * 100 AS DECIMAL(5,2)) 
-        END AS Overall_Profit_Margin_Pct,
-        CASE 
-            WHEN COUNT(DISTINCT f.Order_ID) = 0 THEN 0 
-            ELSE CAST(SUM(f.Sales) / COUNT(DISTINCT f.Order_ID) AS DECIMAL(10,2)) 
-        END AS Average_Order_Value
-    FROM gold.fact_sales f
-    JOIN gold.dim_orders o ON f.Order_ID = o.Order_ID
-    
-END;
 

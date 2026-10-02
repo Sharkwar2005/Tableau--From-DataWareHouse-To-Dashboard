@@ -168,22 +168,3 @@ IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'fact_sales' AND schema_id 
 
 EXEC gold.load_gold_layer;
 GO
-
-
-
-EXEC gold.sp_get_executive_kpis ;
-GO
-
-
-
-SELECT * FROM gold.vw_sales_trends ORDER BY Order_Year, Order_Month;
-GO
-
-
-
-SELECT TOP 10 * FROM gold.vw_customer_behavior ORDER BY Total_Spent DESC;
-GO
-
-
-
-SELECT * FROM gold.vw_profitability_analysis ORDER BY Total_Profit DESC;
