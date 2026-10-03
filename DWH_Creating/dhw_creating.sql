@@ -167,4 +167,5 @@ IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'fact_sales' AND schema_id 
 
 
 EXEC gold.load_gold_layer;
-GO
+
+
