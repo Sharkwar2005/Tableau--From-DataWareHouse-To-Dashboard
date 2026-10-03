@@ -34,7 +34,7 @@ SELECT
     CASE WHEN cm.Total_Sales = 0 THEN 0 ELSE (cm.Total_Profit / cm.Total_Sales) * 100 END AS Profit_Margin_Pct,
     cm.Total_Sales / NULLIF(cm.Total_Orders, 0) AS Customer_Avg_Order_Value,
     RANK() OVER(ORDER BY cm.Total_Profit DESC) AS Lifetime_Profit_Rank,
-    -- Flags
+    
     CASE WHEN cm.Total_Profit < 0 THEN 1 ELSE 0 END AS Is_Unprofitable_Customer
 FROM gold.dim_customers c
 LEFT JOIN customer_metrics cm ON c.Customer_ID = cm.Customer_ID;
