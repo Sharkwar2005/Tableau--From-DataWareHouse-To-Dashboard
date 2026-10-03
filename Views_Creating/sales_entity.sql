@@ -4,7 +4,9 @@ GO
 CREATE OR ALTER VIEW gold.vw_entity_sales_line AS
 SELECT 
     f.Row_ID,
-    f.Order_ID,
+    f.Order_ID,       
+    f.Customer_ID,    
+    f.Product_ID,
     f.Order_Date,
     p.Category,
     p.Sub_Category,
