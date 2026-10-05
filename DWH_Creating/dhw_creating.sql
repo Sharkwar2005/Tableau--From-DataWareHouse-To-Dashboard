@@ -34,22 +34,17 @@ IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'central_superstore' AND sc
                 Country         NVARCHAR(255),
                 City	        NVARCHAR(255),
                 State	        NVARCHAR(255),
-                Postal_Code	NVARCHAR(255),
+                Postal_Code	    NVARCHAR(255),
                 Region	        NVARCHAR(255),
-                Product_ID	NVARCHAR(255),
-                Category	NVARCHAR(255),
+                Product_ID	    NVARCHAR(255),
+                Category	    NVARCHAR(255),
                 Sub_Category	NVARCHAR(255),
                 Product_Name	NVARCHAR(255),
                 Sales	        NVARCHAR(255),
-                Quantity	NVARCHAR(255),
-                Discount	NVARCHAR(255),
+                Quantity	    NVARCHAR(255),
+                Discount	    NVARCHAR(255),
                 Profit          NVARCHAR(255)
-        );
-
-
-EXEC staging.stage_central_superstore;
-GO
-       
+        );       
 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'central_superstore' AND schema_id = SCHEMA_ID('bronze'))
         CREATE TABLE bronze.central_superstore (
@@ -65,21 +60,18 @@ IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'central_superstore' AND sc
                 Country         NVARCHAR(255),
                 City	        NVARCHAR(255),
                 State	        NVARCHAR(255),
-                Postal_Code	NVARCHAR(255),
+                Postal_Code	    NVARCHAR(255),
                 Region	        NVARCHAR(255),
-                Product_ID	NVARCHAR(255),
-                Category	NVARCHAR(255),
+                Product_ID	    NVARCHAR(255),
+                Category	    NVARCHAR(255),
                 Sub_Category	NVARCHAR(255),
                 Product_Name	NVARCHAR(255),
                 Sales	        NVARCHAR(255),
-                Quantity	NVARCHAR(255),
-                Discount	NVARCHAR(255),
+                Quantity	    NVARCHAR(255),
+                Discount	    NVARCHAR(255),
                 Profit          NVARCHAR(255),
                 created_at      DATETIME DEFAULT GETDATE()
         );
-GO
-
-EXEC bronze.load_central_superstore;
 GO
 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'central_superstore' AND schema_id = SCHEMA_ID('silver'))
@@ -97,16 +89,16 @@ IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'central_superstore' AND sc
                 Country                 NVARCHAR(25),
                 City	                NVARCHAR(20),
                 State	                NVARCHAR(20),
-                Postal_Code	        NVARCHAR(10),
+                Postal_Code	            NVARCHAR(10),
                 Region	                NVARCHAR(15),
-                Product_Key	        NVARCHAR(20) NOT NULL,
-                Product_ID	        INT,
-                Category	        NVARCHAR(25),
+                Product_Key	            NVARCHAR(20) NOT NULL,
+                Product_ID	            INT,
+                Category	            NVARCHAR(25),
                 Sub_Category	        NVARCHAR(15),
                 Product_Name	        NVARCHAR(100),
                 Sales	                DECIMAL(10,2),
-                Quantity	        SMALLINT,
-                Discount	        DECIMAL(3,2),
+                Quantity	            SMALLINT,
+                Discount	            DECIMAL(3,2),
                 Profit                  DECIMAL(10,2),
                 has_missing_values      BIT DEFAULT 0,
                 has_invalid_value       BIT DEFAULT 0,
@@ -115,9 +107,6 @@ IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'central_superstore' AND sc
                 has_outlier_Discount    BIT DEFAULT 0,
                 created_at              DATETIME 
         );
-GO
-
-EXEC silver.load_central_superstore;
 GO
 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'dim_customers' AND schema_id = SCHEMA_ID('gold'))
@@ -129,15 +118,15 @@ IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'dim_customers' AND schema_
                 Country                 NVARCHAR(25),
                 City	                NVARCHAR(20),
                 State	                NVARCHAR(20),
-                Postal_Code	        NVARCHAR(10),
+                Postal_Code	            NVARCHAR(10),
                 Region	                NVARCHAR(15)
                 )
 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'dim_products' AND schema_id = SCHEMA_ID('gold'))
         CREATE TABLE gold.dim_products (
-                Product_ID	        INT PRIMARY KEY,
-                Product_Key	        NVARCHAR(20) NOT NULL,
-                Category	        NVARCHAR(25),
+                Product_ID	            INT PRIMARY KEY,
+                Product_Key	            NVARCHAR(20) NOT NULL,
+                Category	            NVARCHAR(25),
                 Sub_Category	        NVARCHAR(15),
                 Product_Name	        NVARCHAR(100)
         )
@@ -160,13 +149,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'fact_sales' AND schema_id 
                 Order_Date              DATE,
                 Ship_Date               DATE,
                 Sales	                DECIMAL(10,2),
-                Quantity	        SMALLINT,
-                Discount	        DECIMAL(3,2),
+                Quantity	            SMALLINT,
+                Discount	            DECIMAL(3,2),
                 Profit                  DECIMAL(10,2)
                 )
-
-
-EXEC gold.load_gold_layer;
-GO
-
-

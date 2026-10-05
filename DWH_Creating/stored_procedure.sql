@@ -1,35 +1,51 @@
 USE DWH;
 GO
 
-CREATE OR ALTER PROCEDURE staging.stage_central_superstore AS
+CREATE OR ALTER PROCEDURE staging.stage_central_superstore 
+    @FilePath NVARCHAR(MAX)
+AS 
 BEGIN
-        DECLARE @START_TIME DATETIME, @END_TIME DATETIME;
+    SET NOCOUNT ON;
 
-        PRINT '================================================================';
-        PRINT ' LOADING DATA INTO STAGING LAYER';
-        PRINT '================================================================';
-        SET @START_TIME = GETDATE();
-        TRUNCATE TABLE staging.central_superstore;
+    DECLARE @START_TIME DATETIME, @END_TIME DATETIME;
+    DECLARE @SQL NVARCHAR(MAX);
 
-        BULK INSERT staging.central_superstore
-        FROM 'D:\Programming\DEPI\Assignments\2 Mini Project\Central_Superstore.csv'
-        WITH (
-                FIRSTROW = 2,
-                FORMAT = 'CSV',
-                FIELDQUOTE = '"', -- Properly read the comma inside the double quotations  
-                CODEPAGE = '65001', 
-                FIELDTERMINATOR = ',',
-                ROWTERMINATOR = '\n',
-                TABLOCK)
-        SET @END_TIME = GETDATE();
-        PRINT 'LOADING STAGING LAYER COMPLETED IN ' + CAST(DATEDIFF(MILLISECOND, @START_TIME, @END_TIME) AS NVARCHAR(20)) + ' millisecond';
+    PRINT ''
+    PRINT '================================================================';
+    PRINT ' LOADING DATA INTO STAGING LAYER';
+    PRINT '================================================================';
+    
+    SET @START_TIME = GETDATE();
+    
+    TRUNCATE TABLE staging.central_superstore;
+
+    SET @SQL = N'
+    BULK INSERT staging.central_superstore
+    FROM ''' + REPLACE(@FilePath, '''', '''''') + '''
+    WITH (
+        FIRSTROW = 2,
+        FORMAT = ''CSV'',
+        FIELDQUOTE = ''"'',  
+        CODEPAGE = ''65001'', 
+        FIELDTERMINATOR = '','',
+        ROWTERMINATOR = ''\n'',
+        TABLOCK);';
+
+    EXEC sp_executesql @SQL;
+
+    SET @END_TIME = GETDATE();
+    PRINT ' > LOADED FILE INTO STAGING LAYER IN : ' + CAST(DATEDIFF(MILLISECOND, @START_TIME, @END_TIME) AS NVARCHAR(20)) + ' ms';
 END;
 GO
+
+
+
 
 CREATE OR ALTER PROCEDURE bronze.load_central_superstore AS
 BEGIN
         DECLARE @START_TIME DATETIME, @END_TIME DATETIME;
         SET @START_TIME = GETDATE();
+        PRINT ''
         PRINT '================================================================';
         PRINT ' LOADING DATA INTO BRONZE LAYER';
         PRINT '================================================================';
@@ -47,13 +63,14 @@ BEGIN
               ,[State],[Postal_Code],[Region],[Product_ID],[Category],[Sub_Category],[Product_Name],[Sales],[Quantity],[Discount],[Profit]
         FROM bronze.central_superstore;
         SET @END_TIME = GETDATE();
-        PRINT 'LOADING BRONZE LAYER COMPLETED IN ' + CAST(DATEDIFF(MILLISECOND, @START_TIME, @END_TIME) AS NVARCHAR(20)) + ' millisecond';
+        PRINT ' > POPULATED BRONZE LAYER IN : ' + CAST(DATEDIFF(MILLISECOND, @START_TIME, @END_TIME) AS NVARCHAR(20)) + ' ms';
 END;
 GO
 
 CREATE OR ALTER PROCEDURE silver.load_central_superstore AS
 BEGIN
         DECLARE @START_TIME DATETIME, @END_TIME DATETIME;
+        PRINT ''
         PRINT '================================================================';
         PRINT ' LOADING DATA INTO SILVER LAYER';
         PRINT '================================================================';
@@ -264,14 +281,14 @@ BEGIN
                         VALUES (src.Row_ID,src.Order_Key, src.Order_ID, src.Order_Date, src.Ship_Date, src.Ship_Mode, src.Customer_Key, src.Customer_ID, src.Customer_Name, src.Segment,src.Country, src.City, src.State, src.Postal_Code, src.Region,src.Product_Key, src.Product_ID, src.Category, src.Sub_Category, src.Product_Name,src.Sales, src.Quantity, src.Discount, src.Profit, src.created_at,src.has_missing_values,src.has_invalid_value,src.has_outlier_Sales,src.has_outlier_Profit,src.has_outlier_Discount);
         ;
         SET @END_TIME = GETDATE();
-        PRINT 'LOADING BRONZE LAYER COMPLETED IN ' + CAST(DATEDIFF(MILLISECOND, @START_TIME, @END_TIME) AS NVARCHAR(20)) + ' millisecond';
+        PRINT ' > POPULATED SILVER LAYER IN : ' + CAST(DATEDIFF(MILLISECOND, @START_TIME, @END_TIME) AS NVARCHAR(20)) + ' ms';
 
 END;
 GO 
 CREATE OR ALTER PROCEDURE gold.load_gold_layer AS
 BEGIN
     SET NOCOUNT ON;
-
+    PRINT ''
     PRINT '================================================================';
     PRINT ' LOADING DATA INTO GOLD LAYER ';
     PRINT '================================================================';
@@ -360,7 +377,7 @@ BEGIN
 
 
     DECLARE @END_TIME DATETIME = GETDATE();
-    PRINT 'LOADING GOLD LAYER COMPLETED IN ' + CAST(DATEDIFF(MILLISECOND, @START_TIME, @END_TIME) AS NVARCHAR(20)) + ' millisecond';
+    PRINT ' > POPULATED GOLD LAYER IN : ' + CAST(DATEDIFF(MILLISECOND, @START_TIME, @END_TIME) AS NVARCHAR(20)) + ' ms';
 END;
 GO
 
@@ -369,7 +386,7 @@ CREATE OR ALTER PROCEDURE gold.sp_get_executive_kpis
 AS
 BEGIN
     SET NOCOUNT ON;
-
+    PRINT ''
     PRINT '================================================================';
     PRINT ' CALCULATING EXECUTIVE KPIS';
     PRINT '================================================================';
