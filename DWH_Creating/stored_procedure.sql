@@ -93,14 +93,13 @@ BEGIN
                 TRY_CAST(NULLIF(TRIM(Row_ID), '') AS INT) AS Row_ID,
                 NULLIF(TRIM(Row_ID), '') AS raw_Row_ID,
 
-                TRY_CAST(NULLIF(TRIM(Order_ID), '') AS NVARCHAR(15)) AS Order_Key,
-                TRY_CAST(SUBSTRING(NULLIF(TRIM(Order_ID), ''), 9, LEN(NULLIF(TRIM(Order_ID), ''))) AS INT) AS Order_ID,
+                TRY_CAST(NULLIF(TRIM(Order_ID), '') AS NVARCHAR(15)) AS Order_ID,
                 TRY_CAST(NULLIF(TRIM(Order_Date), '') AS DATE) AS Order_Date,
                 TRY_CAST(NULLIF(TRIM(Ship_Date), '') AS DATE) AS Ship_Date,
                 TRY_CAST(NULLIF(TRIM(Ship_Mode), '') AS NVARCHAR(25)) AS Ship_Mode,
 
-                TRY_CAST(NULLIF(TRIM(Customer_ID), '') AS NVARCHAR(15)) AS Customer_Key,
-                TRY_CAST(SUBSTRING(NULLIF(TRIM(Customer_ID), ''), 4, LEN(NULLIF(TRIM(Customer_ID), ''))) AS INT) AS Customer_ID, 
+                TRY_CAST(NULLIF(TRIM(Customer_ID), '') AS NVARCHAR(15)) AS Customer_ID,
+                 
                 TRY_CAST(NULLIF(TRIM(Customer_Name), '') AS NVARCHAR(25)) AS Customer_Name,
                 TRY_CAST(NULLIF(TRIM(Segment), '') AS NVARCHAR(15)) AS Segment,
                 TRY_CAST(NULLIF(TRIM(Country), '') AS NVARCHAR(25)) AS Country,
@@ -109,8 +108,8 @@ BEGIN
                 TRY_CAST(NULLIF(TRIM(Postal_Code), '') AS NVARCHAR(10)) AS Postal_Code,
                 TRY_CAST(NULLIF(TRIM(Region), '') AS NVARCHAR(15)) AS Region,
 
-                TRY_CAST(NULLIF(TRIM(Product_ID), '') AS NVARCHAR(20)) AS Product_Key,
-                TRY_CAST(SUBSTRING(NULLIF(TRIM(Product_ID), ''), 8, LEN(NULLIF(TRIM(Product_ID), ''))) AS INT) AS Product_ID, 
+                TRY_CAST(NULLIF(TRIM(Product_ID), '') AS NVARCHAR(20)) AS Product_ID,
+                 
                 TRY_CAST(NULLIF(TRIM(Product_Name), '') AS NVARCHAR(100)) AS Product_Name,
                 TRY_CAST(NULLIF(TRIM(Category), '') AS NVARCHAR(25)) AS Category,
                 TRY_CAST(NULLIF(TRIM(Sub_Category), '') AS NVARCHAR(15)) AS Sub_Category,
@@ -131,7 +130,7 @@ BEGIN
         FROM #latest_bronze
         WHERE row_num = 1
 
-        CREATE CLUSTERED INDEX IX_clean_OrderID ON #clean(Order_Key);
+        CREATE CLUSTERED INDEX IX_clean_OrderID ON #clean(Order_ID);
         
         WITH iqr_bounders AS (
                 SELECT DISTINCT
@@ -149,13 +148,13 @@ BEGIN
                 SELECT
                         c.Row_ID,
                         c.raw_Row_ID,
+
                         c.Order_ID,
-                        c.Order_Key,
                         c.Order_Date,
                         c.Ship_Date,
                         c.Ship_Mode,
+                        
                         c.Customer_ID,
-                        c.Customer_Key,
                         c.Customer_Name,
                         c.Segment,
                         c.Country,
@@ -163,8 +162,8 @@ BEGIN
                         c.State,
                         c.Postal_Code,
                         c.Region,
+                        
                         c.Product_ID,
-                        c.Product_Key,
                         c.Category,
                         c.Sub_Category,
                         c.Product_Name,
@@ -180,11 +179,11 @@ BEGIN
                         CASE 
                                 WHEN 
                                         c.raw_Row_ID IS NULL
-                                        OR c.Order_Key IS NULL
+                                        OR c.Order_ID IS NULL
                                         OR c.Order_Date IS NULL
                                         OR c.Ship_Date IS NULL
                                         OR c.Ship_Mode IS NULL
-                                        OR c.Customer_Key IS NULL
+                                        OR c.Customer_ID IS NULL
                                         OR c.Customer_Name IS NULL
                                         OR c.Segment IS NULL
                                         OR c.Country IS NULL
@@ -240,7 +239,7 @@ BEGIN
         )
         MERGE silver.central_superstore AS tgt
         USING Flagged AS src
-        ON tgt.Order_Key = src.Order_Key
+        ON tgt.Order_ID = src.Order_ID
         AND tgt.Row_ID = src.Row_ID
         AND tgt.Order_Date = src.Order_Date
         AND tgt.Customer_Name = src.Customer_Name
@@ -248,12 +247,10 @@ BEGIN
         WHEN MATCHED THEN
                 UPDATE SET
                         tgt.Row_ID = src.Row_ID,
-                        tgt.Order_Key = src.Order_Key,
                         tgt.Order_ID = src.Order_ID,
                         tgt.Order_Date = src.Order_Date,
                         tgt.Ship_Date = src.Ship_Date,
                         tgt.Ship_Mode = src.Ship_Mode,
-                        tgt.Customer_Key = src.Customer_Key,
                         tgt.Customer_ID = src.Customer_ID,
                         tgt.Customer_Name = src.Customer_Name,
                         tgt.Segment = src.Segment,
@@ -263,7 +260,6 @@ BEGIN
                         tgt.Postal_Code = src.Postal_Code,
                         tgt.Region = src.Region,
                         tgt.Product_ID = src.Product_ID,
-                        tgt.Product_Key = src.Product_Key,
                         tgt.Category = src.Category,
                         tgt.Sub_Category = src.Sub_Category,
                         tgt.Product_Name = src.Product_Name,
@@ -277,14 +273,16 @@ BEGIN
                         tgt.has_outlier_Profit = src.has_outlier_Profit,
                         tgt.has_outlier_Discount = src.has_outlier_Discount
                 WHEN NOT MATCHED THEN
-                        INSERT (Row_ID,Order_Key, Order_ID, Order_Date, Ship_Date, Ship_Mode, Customer_Key, Customer_ID, Customer_Name, Segment,Country, City, State, Postal_Code, Region,Product_Key, Product_ID, Category, Sub_Category, Product_Name,Sales,Quantity, Discount, Profit, created_at,has_missing_values,has_invalid_value,has_outlier_Sales,has_outlier_Profit,has_outlier_Discount)
-                        VALUES (src.Row_ID,src.Order_Key, src.Order_ID, src.Order_Date, src.Ship_Date, src.Ship_Mode, src.Customer_Key, src.Customer_ID, src.Customer_Name, src.Segment,src.Country, src.City, src.State, src.Postal_Code, src.Region,src.Product_Key, src.Product_ID, src.Category, src.Sub_Category, src.Product_Name,src.Sales, src.Quantity, src.Discount, src.Profit, src.created_at,src.has_missing_values,src.has_invalid_value,src.has_outlier_Sales,src.has_outlier_Profit,src.has_outlier_Discount);
+                        INSERT (Row_ID,Order_ID, Order_Date, Ship_Date, Ship_Mode, Customer_ID, Customer_Name, Segment,Country, City, State, Postal_Code, Region,Product_ID, Category, Sub_Category, Product_Name,Sales,Quantity, Discount, Profit, created_at,has_missing_values,has_invalid_value,has_outlier_Sales,has_outlier_Profit,has_outlier_Discount)
+                        VALUES (src.Row_ID,src.Order_ID, src.Order_Date, src.Ship_Date, src.Ship_Mode, src.Customer_ID, src.Customer_Name, src.Segment,src.Country, src.City, src.State, src.Postal_Code, src.Region,src.Product_ID, src.Category, src.Sub_Category, src.Product_Name,src.Sales, src.Quantity, src.Discount, src.Profit, src.created_at,src.has_missing_values,src.has_invalid_value,src.has_outlier_Sales,src.has_outlier_Profit,src.has_outlier_Discount);
         ;
         SET @END_TIME = GETDATE();
         PRINT ' > POPULATED SILVER LAYER IN : ' + CAST(DATEDIFF(MILLISECOND, @START_TIME, @END_TIME) AS NVARCHAR(20)) + ' ms';
 
 END;
 GO 
+
+
 CREATE OR ALTER PROCEDURE gold.load_gold_layer AS
 BEGIN
     SET NOCOUNT ON;
@@ -297,7 +295,7 @@ BEGIN
 
     WITH UniqueCustomers AS (
         SELECT 
-            Customer_ID, Customer_Key, Customer_Name, Segment, 
+            Customer_ID, Customer_Name, Segment, 
             Country, City, State, Postal_Code, Region,
             ROW_NUMBER() OVER (PARTITION BY Customer_ID ORDER BY Order_Date DESC) AS rn
         FROM silver.central_superstore
@@ -306,11 +304,11 @@ BEGIN
           AND Customer_ID IS NOT NULL
     )
     INSERT INTO gold.dim_customers (
-        Customer_ID, Customer_Key, Customer_Name, Segment, 
+        Customer_ID, Customer_Name, Segment, 
         Country, City, State, Postal_Code, Region
     )
     SELECT 
-        Customer_ID, Customer_Key, Customer_Name, Segment, 
+        Customer_ID, Customer_Name, Segment, 
         Country, City, State, Postal_Code, Region
     FROM UniqueCustomers
     WHERE rn = 1
@@ -320,7 +318,7 @@ BEGIN
 
     WITH UniqueProducts AS (
         SELECT 
-            Product_ID, Product_Key, Category, Sub_Category, Product_Name,
+            Product_ID, Category, Sub_Category, Product_Name,
             ROW_NUMBER() OVER (PARTITION BY Product_ID ORDER BY Order_Date DESC) AS rn
         FROM silver.central_superstore
         WHERE has_missing_values = 0 
@@ -328,10 +326,10 @@ BEGIN
           AND Product_ID IS NOT NULL
     )
     INSERT INTO gold.dim_products (
-        Product_ID, Product_Key, Category, Sub_Category, Product_Name
+        Product_ID, Category, Sub_Category, Product_Name
     )
     SELECT 
-        Product_ID, Product_Key, Category, Sub_Category, Product_Name
+        Product_ID, Category, Sub_Category, Product_Name
     FROM UniqueProducts
     WHERE rn = 1
       AND Product_ID NOT IN (SELECT Product_ID FROM gold.dim_products);
@@ -341,7 +339,7 @@ BEGIN
 
     WITH UniqueOrders AS (
         SELECT 
-            Order_ID, Order_Key, Order_Date, Ship_Date, Ship_Mode,
+            Order_ID, Order_Date, Ship_Date, Ship_Mode,
             ROW_NUMBER() OVER (PARTITION BY Order_ID ORDER BY Order_Date DESC) AS rn
         FROM silver.central_superstore
         WHERE has_missing_values = 0 
@@ -349,10 +347,10 @@ BEGIN
           AND Order_ID IS NOT NULL
     )
     INSERT INTO gold.dim_orders (
-        Order_ID, Order_Key, Order_Date, Ship_Date, Ship_Mode
+        Order_ID, Order_Date, Ship_Date, Ship_Mode
     )
     SELECT 
-        Order_ID, Order_Key, Order_Date, Ship_Date, Ship_Mode
+        Order_ID, Order_Date, Ship_Date, Ship_Mode
     FROM UniqueOrders
     WHERE rn = 1
       AND Order_ID NOT IN (SELECT Order_ID FROM gold.dim_orders);

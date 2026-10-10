@@ -1,7 +1,7 @@
 USE DWH;
 GO
 
-EXEC staging.stage_central_superstore @FilePath = N'E:\Projects\_Others\DEPI\Tableau\Mini-Project 3\Tableau--From-DataWareHouse-To-Dashboard\Data\Central_Superstore.csv';
+EXEC staging.stage_central_superstore @FilePath = N'D:\Programming\DEPI\Assignments\Tableau--From-DataWareHouse-To-Dashboard\Data\Central_Superstore.csv';
 GO
 
 EXEC bronze.load_central_superstore;

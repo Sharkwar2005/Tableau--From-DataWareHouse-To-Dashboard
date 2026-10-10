@@ -77,13 +77,11 @@ GO
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'central_superstore' AND schema_id = SCHEMA_ID('silver'))
         CREATE TABLE silver.central_superstore (
                 Row_ID                  INT,
-                Order_Key               NVARCHAR(15) NOT NULL,
-                Order_ID                INT,
+                Order_ID                NVARCHAR(30),
                 Order_Date              DATE,
                 Ship_Date               DATE,
                 Ship_Mode               NVARCHAR(25),
-                Customer_Key            NVARCHAR(15) NOT NULL,
-                Customer_ID             INT,
+                Customer_ID             NVARCHAR(30),
                 Customer_Name           NVARCHAR(25),
                 Segment	                NVARCHAR(15),
                 Country                 NVARCHAR(25),
@@ -91,8 +89,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'central_superstore' AND sc
                 State	                NVARCHAR(20),
                 Postal_Code	            NVARCHAR(10),
                 Region	                NVARCHAR(15),
-                Product_Key	            NVARCHAR(20) NOT NULL,
-                Product_ID	            INT,
+                Product_ID	            NVARCHAR(30),
                 Category	            NVARCHAR(25),
                 Sub_Category	        NVARCHAR(15),
                 Product_Name	        NVARCHAR(100),
@@ -111,8 +108,7 @@ GO
 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'dim_customers' AND schema_id = SCHEMA_ID('gold'))
         CREATE TABLE gold.dim_customers (
-                Customer_ID             INT PRIMARY KEY,
-                Customer_Key            NVARCHAR(25),
+                Customer_ID             NVARCHAR(20) PRIMARY KEY,
                 Customer_Name           NVARCHAR(25),
                 Segment	                NVARCHAR(15),
                 Country                 NVARCHAR(25),
@@ -124,8 +120,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'dim_customers' AND schema_
 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'dim_products' AND schema_id = SCHEMA_ID('gold'))
         CREATE TABLE gold.dim_products (
-                Product_ID	            INT PRIMARY KEY,
-                Product_Key	            NVARCHAR(20) NOT NULL,
+                Product_ID	            NVARCHAR(20) PRIMARY KEY,
                 Category	            NVARCHAR(25),
                 Sub_Category	        NVARCHAR(15),
                 Product_Name	        NVARCHAR(100)
@@ -133,8 +128,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'dim_products' AND schema_i
 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'dim_orders' AND schema_id = SCHEMA_ID('gold'))
         CREATE TABLE gold.dim_orders (
-                Order_ID                INT PRIMARY KEY,
-                Order_Key               NVARCHAR(15) NOT NULL,
+                Order_ID                NVARCHAR(20) PRIMARY KEY,
                 Order_Date              DATE,
                 Ship_Date               DATE,
                 Ship_Mode               NVARCHAR(25)
@@ -143,9 +137,9 @@ IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'dim_orders' AND schema_id 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'fact_sales' AND schema_id = SCHEMA_ID('gold'))
         CREATE TABLE gold.fact_sales (
                 Row_ID                  INT PRIMARY KEY,
-                Order_ID                INT FOREIGN KEY REFERENCES gold.dim_orders(Order_ID),
-                Customer_ID             INT FOREIGN KEY REFERENCES gold.dim_customers(Customer_ID),
-                Product_ID              INT FOREIGN KEY REFERENCES gold.dim_products(Product_ID),
+                Order_ID                NVARCHAR(20) FOREIGN KEY REFERENCES gold.dim_orders(Order_ID),
+                Customer_ID             NVARCHAR(20) FOREIGN KEY REFERENCES gold.dim_customers(Customer_ID),
+                Product_ID              NVARCHAR(20) FOREIGN KEY REFERENCES gold.dim_products(Product_ID),
                 Order_Date              DATE,
                 Ship_Date               DATE,
                 Sales	                DECIMAL(10,2),
